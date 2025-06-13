@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "605574292104",
+    "project_id": "manaquem-aa62e",
+    "storage_bucket": "manaquem-aa62e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605574292104:android:3949de1c0ffca84ae2753d",
+        "android_client_info": {
+          "package_name": "com.manaquem.system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDM-V3M9P3_6ACYpHiMb90c3KmgcznLt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
