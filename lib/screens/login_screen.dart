@@ -1,8 +1,11 @@
 // lib/screens/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'signup_screen.dart';
+import 'dashboard_screen.dart'; // ← import your dashboard
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   static const routeName = '/login';
@@ -13,25 +16,57 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _loading = false;
+  final _passCtrl  = TextEditingController();
+  final _formKey   = GlobalKey<FormState>();
+
+  bool   _loading = false;
   String? _error;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _loading = true;
-      _error = null;
+      _error   = null;
     });
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text,
-      );
-      // no manual navigation: StreamBuilder in main.dart will react
+      // 1️⃣ Sign in
+      final cred = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailCtrl.text.trim(),
+            password: _passCtrl.text,
+          );
+      final user = FirebaseAuth.instance.currentUser!;
+      
+      // 2️⃣ Refresh to get latest emailVerified flag
+      await user.reload();
+      
+      // 3️⃣ Check verification
+      if (!user.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+        setState(() {
+          _error = 
+            'Your email is not verified.\n'
+            'Please check your inbox and tap the verification link\n'
+            'before logging in.';
+        });
+        return;
+      }
+
+      // 4️⃣ Verified → go to Dashboard
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      }
+
     } on FirebaseAuthException catch (e) {
-      _error = e.message;
+      // authentication errors
+      setState(() => _error = e.message);
+    } catch (e) {
+      // any other errors
+      setState(() => _error = 'An unexpected error occurred.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -53,20 +88,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 32),
+
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
+                    // Email field
                     TextFormField(
                       controller: _emailCtrl,
                       decoration: const InputDecoration(
                         labelText: 'Email Address',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) =>
-                          v != null && v.contains('@') ? null : 'Invalid email',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => v != null && v.contains('@')
+                          ? null
+                          : 'Invalid email',
                     ),
                     const SizedBox(height: 16),
+
+                    // Password field
                     TextFormField(
                       controller: _passCtrl,
                       decoration: const InputDecoration(
@@ -75,14 +116,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         suffixIcon: Icon(Icons.lock_outline),
                       ),
                       obscureText: true,
-                      validator: (v) =>
-                          v != null && v.length >= 6 ? null : 'Min 6 chars',
+                      validator: (v) => v != null && v.length >= 6
+                          ? null
+                          : 'Min 6 chars',
                     ),
+
+                    // Error / verification message
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(color: Colors.red)),
+                      Text(
+                        _error!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
+
                     const SizedBox(height: 24),
+
+                    // Log In button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -93,18 +148,24 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text('Log In'),
                       ),
                     ),
+
                     const SizedBox(height: 12),
+
+                    // Forgot password
                     TextButton(
                       onPressed: () {
                         // TODO: forgot password flow
                       },
                       child: const Text('Forgot password?'),
                     ),
+
+                    // Sign Up
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
-                              builder: (_) => const SignUpScreen()),
+                            builder: (_) => const SignUpScreen(),
+                          ),
                         );
                       },
                       child: const Text("Don't have an account? Sign Up"),

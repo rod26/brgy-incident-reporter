@@ -1,7 +1,7 @@
 // lib/screens/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'accident_report_screen.dart';  // import the new screen
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -49,7 +49,11 @@ class DashboardScreen extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.directions_car),
                 label: const Text('Accident Report'),
-                onPressed: () {/* TODO */},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AccidentReportScreen()),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 18),
                 ),
